@@ -1,0 +1,33 @@
+{
+  "name": "sqs-worker",
+  "version": "0.0.0",
+  "description": "Handle messages in Amazon Simple Queue Service easily",
+  "main": "index.js",
+  "dependencies": {},
+  "optionalDependencies": {
+    "aws-sdk": "^2.0.15"
+  },
+  "devDependencies": {},
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tellnes/sqs-worker.git"
+  },
+  "keywords": [
+    "aws",
+    "amazon",
+    "sqs",
+    "simple",
+    "queue",
+    "service"
+  ],
+  "author": "Christian Tellnes <christian@tellnes.no> (http://christian.tellnes.com)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/tellnes/sqs-worker/issues"
+  },
+  "homepage": "https://github.com/tellnes/sqs-worker",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  }
+}
