@@ -14,7 +14,12 @@ function SQSWorker(options, fn) {
   this.timeout = options.timeout || void 0
   this.parse = options.parse
   this.log = options.log || console
-  this.attributes = options.attributes || []
+  this.attributes = Array.isArray(options.attributes) ? options.attributes.slice() : []
+  this.attempts = options.attempts || 3
+
+  if (this.attempts && !~this.attributes.indexOf('ApproximateReceiveCount')) {
+    this.attributes.push('ApproximateReceiveCount')
+  }
 
   this.fn = fn
 
@@ -84,12 +89,12 @@ SQSWorker.prototype.handleMessage = function (message) {
     this.fn(payload, message, callback)
   }
 
-  function callback(err, success) {
+  function callback(err, del) {
     self.handling--
 
     if (err) {
       self.log.error({ err: err, message: message, payload: payload }, 'error handling message')
-      return
+      del = (self.attempts && Number(message['Attributes']['ApproximateReceiveCount']) >= self.attempts)
     }
 
     var params =
@@ -97,15 +102,15 @@ SQSWorker.prototype.handleMessage = function (message) {
       , 'ReceiptHandle': message.ReceiptHandle
       }
 
-    if (!success) {
+    if (!del) {
       params['VisibilityTimeout'] = 0
     }
 
-    self.client[success ? 'deleteMessage' : 'changeMessageVisibility'](params, function (err) {
+    self.client[del ? 'deleteMessage' : 'changeMessageVisibility'](params, function (err) {
       if (err) {
         self.log.error(
             { err: err, message: message, payload: payload }
-          , 'failed to ' + (success ? 'delete message' : 'change visibility timeout')
+          , 'failed to ' + (del ? 'delete message' : 'change visibility timeout')
           )
         return
       }
