@@ -112,7 +112,8 @@ SQSWorker.prototype.handleMessage = function (message) {
             { err: err, message: message, payload: payload }
           , 'failed to ' + (del ? 'delete message' : 'change visibility timeout')
           )
-        return
+        // Keep retrying even if updating the props fails
+        // return
       }
 
       self.maybeMore()
