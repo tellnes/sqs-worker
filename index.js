@@ -57,7 +57,7 @@ SQSWorker.prototype.maybeMore = function (retries) {
       return
     }
 
-    self.log.info({ params: params, response: data }, 'receiveMessage response')
+    // self.log.info({ params: params, response: data }, 'receiveMessage response')
 
     if (Array.isArray(data.Messages)) {
       data.Messages.map(self.handleMessage, self)
