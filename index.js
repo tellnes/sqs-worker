@@ -57,7 +57,7 @@ SQSWorker.prototype.maybeMore = function (retries) {
       return
     }
 
-    self.log.info({ params: params, response: data }, 'receiveMessage response')
+    // self.log.info({ params: params, response: data }, 'receiveMessage response')
 
     if (Array.isArray(data.Messages)) {
       data.Messages.map(self.handleMessage, self)
@@ -112,7 +112,8 @@ SQSWorker.prototype.handleMessage = function (message) {
             { err: err, message: message, payload: payload }
           , 'failed to ' + (del ? 'delete message' : 'change visibility timeout')
           )
-        return
+        // Keep retrying even if updating the props fails
+        // return
       }
 
       self.maybeMore()
