@@ -3,7 +3,7 @@ module.exports = SQSWorker
 function SQSWorker(options, fn) {
     if (!(this instanceof SQSWorker)) return new SQSWorker(options, fn)
 
-    this.client = options.client || new(require('aws-sdk').SQS)(options)
+    this.client = options.client || new (require('aws-sdk').SQS)(options)
 
     // default to long polling
     this.waittime = options.waittime || 20;
@@ -32,13 +32,13 @@ function SQSWorker(options, fn) {
     this.maybeMore()
 }
 
-SQSWorker.prototype.maybeMore = function(retries) {
+SQSWorker.prototype.maybeMore = function (retries) {
     if (this.receiving) return
     if (this.handling >= this.parallel) return
 
     this.receiving++
 
-        retries = retries || 0
+    retries = retries || 0
     retries++
 
     var self = this
@@ -51,23 +51,23 @@ SQSWorker.prototype.maybeMore = function(retries) {
         'AttributeNames': this.attributes
     }
 
-    this.client.receiveMessage(params, function(err, data) {
+    this.client.receiveMessage(params, function (err, data) {
         self.receiving--
 
-            if (err) {
-                self.log.error({
-                    err: err,
-                    params: params
-                }, 'failed to receive messages')
-                self.log.error('Will try again in ', Math.min(Math.pow(2, retries), 300), 'seconds')
+        if (err) {
+            self.log.error({
+                err: err,
+                params: params
+            }, 'failed to receive messages')
+            self.log.error('Will try again in ', Math.min(Math.pow(2, retries), 300), 'seconds')
 
-                // Progressively increase timout up to a maximum of 300 seconds then call myself
-                // with the same context and an argument of the number of retries.
-                setTimeout(self.maybeMore.bind(self), Math.min(Math.pow(2, retries), 300) * 1000, retries)
-                return
-            }
+            // Progressively increase timout up to a maximum of 300 seconds then call myself
+            // with the same context and an argument of the number of retries.
+            setTimeout(self.maybeMore.bind(self), Math.min(Math.pow(2, retries), 300) * 1000, retries)
+            return
+        }
 
-        // jsp removed - no need to log every message
+        // uncomment to log every message
         // self.log.info({ params: params, response: data }, 'receiveMessage response')
 
         // data.Messages will be an array if each returned messages, call
@@ -80,13 +80,13 @@ SQSWorker.prototype.maybeMore = function(retries) {
     })
 }
 
-SQSWorker.prototype.handleMessage = function(message) {
+SQSWorker.prototype.handleMessage = function (message) {
     this.handling++
 
-        var payload = message.Body
+    var payload = message.Body
 
     // Can choose to pass in a function to call to parse the payload, this function
-    // shoudl return the properly parsed value.
+    // should return the properly parsed value.
     if (this.parse) {
         try {
             payload = this.parse(payload)
@@ -114,14 +114,14 @@ SQSWorker.prototype.handleMessage = function(message) {
     function callback(err, del) {
         self.handling--
 
-            if (err) {
-                self.log.error({
-                    err: err,
-                    message: message,
-                    payload: payload
-                }, 'error handling message')
-                del = (self.attempts && Number(message['Attributes']['ApproximateReceiveCount']) >= self.attempts)
-            }
+        if (err) {
+            self.log.error({
+                err: err,
+                message: message,
+                payload: payload
+            }, 'error handling message')
+            del = (self.attempts && Number(message['Attributes']['ApproximateReceiveCount']) >= self.attempts)
+        }
 
         var params = {
             'QueueUrl': self.url,
@@ -134,7 +134,7 @@ SQSWorker.prototype.handleMessage = function(message) {
             params['VisibilityTimeout'] = 0
         }
 
-        self.client[del ? 'deleteMessage' : 'changeMessageVisibility'](params, function(err) {
+        self.client[del ? 'deleteMessage' : 'changeMessageVisibility'](params, function (err) {
             if (err) {
                 self.log.error({
                     err: err,
